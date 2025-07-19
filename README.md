@@ -10,15 +10,23 @@ A high-performance proxy server that translates Anthropic Claude API requests to
 - 📡 **Streaming Support**: Full support for Server-Sent Events (SSE) streaming responses
 - 🛡️ **Production Ready**: Comprehensive error handling, logging, and graceful shutdown
 - ⚡ **High Performance**: Built with Go for optimal performance and low resource usage
-- 🔧 **Configurable**: Flexible configuration via environment variables
+- 🔧 **Configurable**: Flexible configuration via settings.json (Simialr to Claude Code)
 
 ## Installation
 
 Install globally using npm:
 
 ```bash
-npm install -g @aistack/claude-code-proxy
+npm install -g @aistack/claude-code-proxy # OR
+npx @aistack/claude-code-proxy
 ```
+
+OR 
+
+```bash
+npx ccproxy
+bunx ccproxy
+``` 
 
 ## Quick Start
 
@@ -48,12 +56,12 @@ This will prompt you to create a configuration file at either:
     },
     "anthropic": {
       "apiKey": "sk-ant-...",
-      "baseURL": "https://api.anthropic.com",
+      "baseURL": "https://api.anthropic.com/v1",
       "responseStyle": "anthropic"
     },
     "gemini": {
       "apiKey": "...",
-      "baseURL": "https://generativelanguage.googleapis.com",
+      "baseURL": "https://generativelanguage.googleapis.com/v1beta/openai",
       "responseStyle": "openai"
     },
     "openrouter": {
@@ -63,13 +71,15 @@ This will prompt you to create a configuration file at either:
     }
   },
   "models": {
-    "bigModel": "gpt-4@openai",
-    "smallModel": "gpt-4-mini@openai",
-    "preferredProvider": "openai"
+    "bigModel": "moonshotai/kimi-k2@openrouter",
+    "smallModel": "gpt-4.1@openai"
   },
   "logging": {
     "level": "info",
     "format": "json"
+  },
+  "claude": {
+    "args": ""
   }
 }
 ```
@@ -150,9 +160,9 @@ The proxy loads configuration from multiple sources in priority order:
 
 Models are specified in the format `modelname@provider`:
 - `gpt-4@openai`
-- `claude-3-opus@anthropic`
-- `gemini-pro@gemini`
-- `gpt-4@openrouter`
+- `claude-4-opus@anthropic`
+- `gemini-2.5-pro@gemini`
+- `moonshotai/kimi-k2@openrouter`
 
 ### Response Styles
 
@@ -185,7 +195,6 @@ The proxy automatically maps Claude models to configured models:
 | `providers.<name>.responseStyle` | Response format style | `openai` |
 | `models.bigModel` | Model for large requests | `gpt-4@openai` |
 | `models.smallModel` | Model for small requests | `gpt-4-mini@openai` |
-| `models.preferredProvider` | Default provider | `openai` |
 | `logging.level` | Log level | `info` |
 | `logging.format` | Log format | `json` |
 
@@ -216,6 +225,38 @@ You can add custom providers with native Anthropic support:
 ```
 
 Then use it with: `custom-model@custom-llm`
+
+## GitHub Actions Integration
+
+Use claude-code-proxy in your GitHub Actions workflows to enable multi-provider LLM support for automated code analysis, reviews, and assistance.
+
+### Quick Setup
+
+```yaml
+- name: Setup Claude Code Proxy
+  uses: ./.github/actions/setup-ccproxy
+  with:
+    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    big_model: 'gpt-4@openai'
+    small_model: 'gpt-4-mini@openai'
+
+- name: Run Claude Code
+  uses: anthropics/claude-code-action@beta
+  env:
+    ANTHROPIC_BASE_URL: http://localhost:8082
+    ANTHROPIC_API_KEY: dummy-key
+  with:
+    task: 'Review this code and suggest improvements'
+```
+
+### Key Features
+- 🔄 **Multi-Provider Support**: Switch between OpenAI, Anthropic, Gemini, OpenRouter
+- 🚀 **Easy Setup**: One-step proxy configuration with secrets management
+- 🔧 **Flexible**: Support for issue comments, PR reviews, scheduled analysis
+- 📊 **Cost Optimization**: Route different tasks to appropriate model sizes
+- 🛡️ **Secure**: Proper API key management via GitHub Secrets
+
+See the [GitHub Actions Documentation](docs/github-actions.md) for complete setup instructions, examples, and best practices.
 
 ## Platform Support
 
@@ -255,8 +296,3 @@ MIT License - see the [LICENSE](https://github.com/aistackhq/claude-code-proxy/b
 
 - 📚 [Documentation](https://github.com/aistackhq/claude-code-proxy)
 - 🐛 [Issue Tracker](https://github.com/aistackhq/claude-code-proxy/issues)
-- 💬 [Discussions](https://github.com/aistackhq/claude-code-proxy/discussions)
-
-## Changelog
-
-See [CHANGELOG.md](https://github.com/aistackhq/claude-code-proxy/blob/main/CHANGELOG.md) for release history.
